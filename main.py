@@ -41,3 +41,4 @@ async def helpme(ctx):
 load_dotenv()
 BOT_TOKEN = os.getenv("TOKEN_DISCORD")
 bot.run(BOT_TOKEN)
+

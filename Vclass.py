@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 class Vclass:
     def __init__(self):
         load_dotenv()
+        self.base_url = "https://v-class.gunadarma.ac.id/calendar/view.php"
         self.email = os.getenv("VCLASS_MAIL")
         self.password = os.getenv("VCLASS_PASS")
         self.session = r.Session()
@@ -48,47 +49,14 @@ class Vclass:
             return self.__doLogin()
         else :
             return self.__checkAuth()
-    
-    def getAssignmentToday(self):
-        response = self.session.get("https://v-class.gunadarma.ac.id/calendar/view.php?view=day")
-        data = []
-        sp = BeautifulSoup(response.content, 'html.parser')
-        allEvent = sp.find('div',class_='eventlist my-1').find_all('div',class_="event m-t-1")
-        if allEvent == None:
-            return data
-        # print(allEvent)
-        for event in allEvent:
-            descriptionList = event.find('div',class_="description card-body").find_all('div',class_='row')
-            dataTemp = {}
-            dataTemp['title'] = event['data-event-title']
-            dataTemp['course-id'] = event['data-course-id']
-            dataTemp['event-id'] = event['data-event-id']
-            dataTemp['data'] = []
-            x = 0
-            for description in descriptionList:
-                desc = {}
-                getDesc = description.find_all('div')
-                desc['title'] = getDesc[0].contents[0]['title']
-                desc['text'] = getDesc[1].text
-                if getDesc[1].find('a',href=True) != None:
-                    desc['link'] = getDesc[1].find('a',href=True)['href']
-                else :
-                    desc['link'] = ""
-                x+=1
-                print(desc)
-                dataTemp['data'].append(desc)
-            data.append(dataTemp)
-        print(data)
-        return data
-    
-    def getAssignmentByTimeStamp(self,timestamp:str)-> list['Course']:
-        response = self.session.get(f"https://v-class.gunadarma.ac.id/calendar/view.php?view=day&time={timestamp}")
+        
+    def getAssignmentByUrl(self, url: str)-> list['Course']:
+        response = self.session.get(url)
         data: list['Course'] = []
         sp = BeautifulSoup(response.content, 'html.parser')
         allEvent = sp.find('div',class_='eventlist my-1').find_all('div',class_="event m-t-1")
         if allEvent == None:
             return data
-        # print(allEvent)
         for event in allEvent:
             descriptionList = event.find('div',class_="description card-body").find_all('div',class_='row')
             dataTemp = {}
@@ -110,6 +78,15 @@ class Vclass:
                 dataTemp['data'].append(desc)
             data.append(Course(dataTemp))
         return data
+        
+    
+    def getAssignmentToday(self)-> list['Course']:
+        url = f"{self.base_url}?view=day"
+        return self.getAssignmentByUrl(url)
+    
+    def getAssignmentByTimeStamp(self,timestamp:str)-> list['Course']:
+        url = f"{self.base_url}?view=day&time={timestamp}"
+        return self.getAssignmentByUrl(url)
     
     def getAssignmentByDate(self,date:str=None):
         """Return an Assignemnt by Selected Date with Format : d/m/Y
@@ -121,34 +98,8 @@ class Vclass:
             return self.getAssignmentByTimeStamp(timestamp)
     
     def getAssigmentAreNotYetDue(self)-> list['Course']:
-        response = self.session.get("https://v-class.gunadarma.ac.id/calendar/view.php?view=upcoming")
-        data = []
-        sp = BeautifulSoup(response.content, 'html.parser')
-        allEvent = sp.find('div',class_='eventlist my-1').find_all('div',class_="event m-t-1")
-        if allEvent == None:
-            return data
-        # print(allEvent)
-        for event in allEvent:
-            descriptionList = event.find('div',class_="description card-body").find_all('div',class_='row')
-            dataTemp = {}
-            dataTemp['title'] = event['data-event-title']
-            dataTemp['course-id'] = event['data-course-id']
-            dataTemp['event-id'] = event['data-event-id']
-            dataTemp['data'] = []
-            x = 0
-            for description in descriptionList:
-                desc = {}
-                getDesc = description.find_all('div')
-                desc['title'] = getDesc[0].contents[0]['title']
-                desc['text'] = getDesc[1].text
-                if getDesc[1].find('a',href=True) != None:
-                    desc['link'] = getDesc[1].find('a',href=True)['href']
-                else :
-                    desc['link'] = ""
-                x+=1
-                dataTemp['data'].append(desc)
-            data.append(Course(dataTemp))
-        return data
+        url = f"{self.base_url}?view=upcoming"
+        return self.getAssignmentByUrl(url)
     
     def doLogout(self):
         logout = self.session.get("https://v-class.gunadarma.ac.id/my")

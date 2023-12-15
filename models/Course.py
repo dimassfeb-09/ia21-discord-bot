@@ -1,5 +1,3 @@
-
-
 class Course:
     def __init__(self, course: dict):
         self.title:str = course['title']
