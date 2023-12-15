@@ -15,20 +15,14 @@ class NewsBaak(NewsModel):
             article_lists_scrap = sp.find_all('div', class_='post-news-body')
             for article_data in article_lists_scrap:
                 h6 = article_data.find('h6')
-                self.title = h6.find('a').text
-                self.url = h6.find('a')['href']
-                self.id = self.url.split("/")[-1]
-                self.body = article_data.find(class_='offset-top-5').find('p').text
-                self.date = article_data.find('span', class_="text-middle inset-left-10 text-italic text-black").text
-                self.source = "BAAK"
-                article_lists.append(NewsModel(
-                    self.id,
-                    self.title,
-                    self.url,
-                    self.body,
-                    self.date,
-                    self.source,
-                ))
+                article = {}
+                article['url'] = h6.find('a')['href']
+                article['id'] = article['url'].split("/")[-1]
+                article['title'] = h6.find('a').text
+                article['content'] = article_data.find(class_='offset-top-5').find('p').text
+                article['date'] = article_data.find('span', class_="text-middle inset-left-10 text-italic text-black").text
+                article['source'] = "BAAK"
+                article_lists.append(NewsModel(article))
             return article_lists
         else:
             return None

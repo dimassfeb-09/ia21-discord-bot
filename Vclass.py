@@ -6,20 +6,22 @@ from datetime import datetime
 import re
 import time
 import datetime
-import sys
+import os
+from dotenv import load_dotenv
 
-class vclass:
-    def __init__(self, email:str, password:str):
-        self.email = email
-        self.password = password
+class Vclass:
+    def __init__(self):
+        load_dotenv()
+        self.email = os.getenv("VCLASS_MAIL")
+        self.password = os.getenv("VCLASS_PASS")
         self.session = r.Session()
-        if self._authenticate() == False:
+        if self.__authenticate() == False:
             raise ValueError("Login Error! Make Sure email and Password are valid")
         else:
             print("Success ")
 
     
-    def _doLogin(self):
+    def __doLogin(self):
         res = self.session.get("https://v-class.gunadarma.ac.id/login/index.php")
         cookie = res.cookies.get_dict()
         pattern = '<input type="hidden" name="logintoken" value="\w{32}">'
@@ -34,18 +36,18 @@ class vclass:
         else :
             return False
     
-    def _checkAuth(self):
+    def __checkAuth(self):
         checkReq = self.session.get("https://v-class.gunadarma.ac.id/my")
         if 'You are logged in as' in checkReq.text:
             return True
         else :
             return False
         
-    def _authenticate(self):
-        if self._checkAuth() != True:
-            return self._doLogin()
+    def __authenticate(self):
+        if self.__checkAuth() != True:
+            return self.__doLogin()
         else :
-            return self._checkAuth()
+            return self.__checkAuth()
     
     def getAssignmentToday(self):
         response = self.session.get("https://v-class.gunadarma.ac.id/calendar/view.php?view=day")
@@ -117,7 +119,37 @@ class vclass:
         else:
             timestamp = time.mktime(datetime.datetime.strptime(date, "%d/%m/%Y").timetuple())
             return self.getAssignmentByTimeStamp(timestamp)
-        
+    
+    def getAssigmentAreNotYetDue(self)-> list['Course']:
+        response = self.session.get("https://v-class.gunadarma.ac.id/calendar/view.php?view=upcoming")
+        data = []
+        sp = BeautifulSoup(response.content, 'html.parser')
+        allEvent = sp.find('div',class_='eventlist my-1').find_all('div',class_="event m-t-1")
+        if allEvent == None:
+            return data
+        # print(allEvent)
+        for event in allEvent:
+            descriptionList = event.find('div',class_="description card-body").find_all('div',class_='row')
+            dataTemp = {}
+            dataTemp['title'] = event['data-event-title']
+            dataTemp['course-id'] = event['data-course-id']
+            dataTemp['event-id'] = event['data-event-id']
+            dataTemp['data'] = []
+            x = 0
+            for description in descriptionList:
+                desc = {}
+                getDesc = description.find_all('div')
+                desc['title'] = getDesc[0].contents[0]['title']
+                desc['text'] = getDesc[1].text
+                if getDesc[1].find('a',href=True) != None:
+                    desc['link'] = getDesc[1].find('a',href=True)['href']
+                else :
+                    desc['link'] = ""
+                x+=1
+                dataTemp['data'].append(desc)
+            data.append(Course(dataTemp))
+        return data
+    
     def doLogout(self):
         logout = self.session.get("https://v-class.gunadarma.ac.id/my")
         sp = BeautifulSoup(logout.content,'html.parser')
