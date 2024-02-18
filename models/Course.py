@@ -19,10 +19,10 @@ class Course:
     
     def detail_course(self):
         detail = {}
-        detail['course'] = self.data[3].text
-        detail['description'] = self.data[2].text
+        detail['course'] = self.data[3].text if self.data[2].title == "Description" else self.data[2].text
+        detail['description'] = self.data[2].text if self.data[2].title == "Description" else ""
         detail['deadline'] = self.data[0].text
-        detail['assign_url'] = self.data[2].link
+        detail['assign_url'] = self.data[3].link if self.data[2].title == "Description" else self.data[2].link
         return DetailCourse(detail)
 
 class DetailCourse:

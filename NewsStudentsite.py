@@ -14,20 +14,16 @@ class NewsStudentsite(NewsModel):
             sp = BeautifulSoup(response.content, 'html.parser')
             content_boxes = sp.find_all('div', class_='content-box')
             for content_box in content_boxes:
-                self.title = content_box.find('h3', class_='content-box-header').text.strip()
-                self.url = f"https://studentsite.gunadarma.ac.id{content_box.find('a')['href']}"
-                self.id = self.url.split("/")[-1]
-                self.body = content_box.find('div', class_='content-box-wrapper').text.strip()
-                self.date = content_box.find('div', class_='font-gray').text.strip()
-                self.source = "STUDENT SITE"
-                article_lists.append(NewsModel(
-                    self.id,
-                    self.title,
-                    self.url,
-                    self.body,
-                    self.date,
-                    self.source,
-                ))
+                article = {}
+                article['title'] = content_box.find('h3', class_='content-box-header').get_text().strip()
+                # article['url'] = f"https://studentsite.gunadarma.ac.id{content_box.find('a')['href']}"
+                article['url'] = f"https://studentsite.gunadarma.ac.id{content_box.find('a', class_='btn btn-info')['href']}"
+                article['id'] =  str(article['url']).split("/")[-1]
+                article['body'] = content_box.find('div', class_='content-box-wrapper').text.strip()
+                # article['date'] = content_box.find('div', class_='font-gray').text.strip()
+                article['date'] = content_box.find('div', class_='font-gray').text.split("  ")[-1]
+                article['source'] = "STUDENT SITE"
+                article_lists.append(NewsModel(article))
             return article_lists
         else:
             return None

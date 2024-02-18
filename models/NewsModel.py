@@ -9,5 +9,5 @@ class NewsModel:
         self.source = news.get("source")
         
     def body_message(self)-> str:
-        return f"\n```------- BERITA {self.source} ------\nJudul: {self.title.strip()}\nTanggal: {self.date}``````{self.body.strip()}```\nLihat selengkapnya: {self.url}"
+        return f"\n```------- BERITA {self.source} ------\nJudul: {self.title}\nTanggal: {self.date}``````{self.body}```\nLihat selengkapnya: {self.url}"
     
