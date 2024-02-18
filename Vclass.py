@@ -19,7 +19,7 @@ class Vclass:
         if self.__authenticate() == False:
             raise ValueError("Login Error! Make Sure email and Password are valid")
         else:
-            print("Success ")
+            print(f"\033[85m{datetime.datetime.now()} \033[0m  \033[96m[LOG]\033[0m \033[32m Login V-Class Success in Class V-Class\033[0m")
 
     
     def __doLogin(self):
@@ -52,6 +52,7 @@ class Vclass:
         
     def getAssignmentByUrl(self, url: str)-> list['Course']:
         response = self.session.get(url)
+        print(f"\033[85m{datetime.datetime.now()} \033[0m  \033[96m[LOG]\033[0m \033[32m Scraping {url}\033[0m")
         data: list['Course'] = []
         sp = BeautifulSoup(response.content, 'html.parser')
         allEvent = sp.find('div',class_='eventlist my-1').find_all('div',class_="event m-t-1")
@@ -69,10 +70,11 @@ class Vclass:
                 desc = {}
                 getDesc = description.find_all('div')
                 desc['title'] = getDesc[0].contents[0]['title']
-                desc['text'] = getDesc[1].text
                 if getDesc[1].find('a',href=True) != None:
+                    desc['text'] = getDesc[1].text
                     desc['link'] = getDesc[1].find('a',href=True)['href']
                 else :
+                    desc['text'] = getDesc[1].text
                     desc['link'] = ""
                 x+=1
                 dataTemp['data'].append(desc)
